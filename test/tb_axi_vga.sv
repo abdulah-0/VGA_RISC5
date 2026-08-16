@@ -59,82 +59,106 @@ module tb_axi_vga;
       .clk_i  ( clk )
   );
 
-  typedef reg_test::reg_driver #(
-      .AW ( RegBusAddrWidth  ),
-      .DW ( RegBusDataWidth  )
-  ) reg_driver_t;
-
-  reg_driver_t tb_reg_driver = new(i_tb_regbus);
-
   reg_vga_tb_req_t vga_reg_req;
   reg_vga_tb_rsp_t vga_reg_rsp;
 
   `REG_BUS_ASSIGN_TO_REQ(vga_reg_req, i_tb_regbus)
   `REG_BUS_ASSIGN_FROM_RSP(i_tb_regbus, vga_reg_rsp)
 
+  task reg_reset_master;
+    i_tb_regbus.addr  <= '0;
+    i_tb_regbus.write <= '0;
+    i_tb_regbus.wdata <= '0;
+    i_tb_regbus.wstrb <= '0;
+    i_tb_regbus.valid <= '0;
+  endtask
+
+  task reg_send_write (
+    input  logic [RegBusAddrWidth-1:0] addr,
+    input  logic [RegBusDataWidth-1:0] data,
+    input  logic [RegBusStrbWidth-1:0] strb,
+    output logic error
+  );
+    @(posedge clk);
+    i_tb_regbus.addr  <= addr;
+    i_tb_regbus.write <= 1'b1;
+    i_tb_regbus.wdata <= data;
+    i_tb_regbus.wstrb <= strb;
+    i_tb_regbus.valid <= 1'b1;
+    @(posedge clk);
+    while (i_tb_regbus.ready != 1'b1) @(posedge clk);
+    error = i_tb_regbus.error;
+    @(posedge clk);
+    i_tb_regbus.addr  <= '0;
+    i_tb_regbus.write <= 1'b0;
+    i_tb_regbus.wdata <= '0;
+    i_tb_regbus.wstrb <= '0;
+    i_tb_regbus.valid <= 1'b0;
+  endtask
+
   logic bus_error = 0;
     
   // Initiate VGA driver - 32x16 testing mode
   initial begin
     #(10 * ClkPeriod);
-    tb_reg_driver.reset_master();
+    reg_reset_master();
     #(10 * ClkPeriod);
 
     $info("TEST: Clock divider");
-    tb_reg_driver.send_write(48'h4, 32'h8, 4'hf, bus_error);
+    reg_send_write(48'h4, 32'h8, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Horizontal visible portion");
-    tb_reg_driver.send_write(48'h8, 32'h21, 4'hf, bus_error);
+    reg_send_write(48'h8, 32'h21, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Horizontal front porch");
-    tb_reg_driver.send_write(48'hC, 32'h3, 4'hf, bus_error);
+    reg_send_write(48'hC, 32'h3, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Horizontal sync part");
-    tb_reg_driver.send_write(48'h10, 32'h5, 4'hf, bus_error);
+    reg_send_write(48'h10, 32'h5, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Horizontal back porch");
-    tb_reg_driver.send_write(48'h14, 32'h4, 4'hf, bus_error);
+    reg_send_write(48'h14, 32'h4, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Vertical visible portion");
-    tb_reg_driver.send_write(48'h18, 32'h20, 4'hf, bus_error);
+    reg_send_write(48'h18, 32'h20, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Vertical front porch");
-    tb_reg_driver.send_write(48'h1C, 32'h3, 4'hf, bus_error);
+    reg_send_write(48'h1C, 32'h3, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Vertical sync part");
-    tb_reg_driver.send_write(48'h20, 32'h5, 4'hf, bus_error);
+    reg_send_write(48'h20, 32'h5, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Vertical back porch");
-    tb_reg_driver.send_write(48'h24, 32'h4, 4'hf, bus_error);
+    reg_send_write(48'h24, 32'h4, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     // Frame size in byte
     // 33x32x2 = 0x840
-    tb_reg_driver.send_write(48'h30, 32'h840, 4'hf, bus_error);
+    reg_send_write(48'h30, 32'h840, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Low end of start address of frame buffer");
-    tb_reg_driver.send_write(48'h28, 32'h800007F0, 4'hf, bus_error);
+    reg_send_write(48'h28, 32'h800007F0, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: High end of start address of frame buffer");
-    tb_reg_driver.send_write(48'h2c, 32'h0, 4'hf, bus_error);
+    reg_send_write(48'h2c, 32'h0, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Burst length");
-    tb_reg_driver.send_write(48'h34, 32'hff, 4'hf, bus_error);
+    reg_send_write(48'h34, 32'hff, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: FSM enable");
-    tb_reg_driver.send_write(48'h0, 32'h1, 4'hf, bus_error);
+    reg_send_write(48'h0, 32'h1, 4'hf, bus_error);
     assert (!bus_error) else $fatal(1, "Not able to write cfg reg");
 
     $info("TEST: Render");

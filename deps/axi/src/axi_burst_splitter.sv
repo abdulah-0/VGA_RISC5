@@ -319,8 +319,7 @@ module axi_burst_splitter #(
   // Assumptions and assertions
   // --------------------------------------------------
   `ifndef VERILATOR
-  // pragma translate_off
-  default disable iff (!rst_ni);
+  // default disable iff (!rst_ni);
   // Inputs
   assume property (@(posedge clk_i) slv_req_i.aw_valid |->
       txn_supported(slv_req_i.aw.atop, slv_req_i.aw.burst, slv_req_i.aw.cache, slv_req_i.aw.len)

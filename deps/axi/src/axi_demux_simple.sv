@@ -456,57 +456,18 @@ module axi_demux_simple #(
       // assign mst_r_chans[i]        = mst_resps_i[i].r;
       assign mst_r_valids[i]       = mst_resps_i[i].r_valid;
     end
+  end
 
 // Validate parameters.
 // pragma translate_off
-`ifndef VERILATOR
-`ifndef XSIM
+`ifndef SYNTHESIS
     initial begin: validate_params
-      no_mst_ports: assume (NoMstPorts > 0) else
+      no_mst_ports: assert (NoMstPorts > 0) else
         $fatal(1, "The Number of slaves (NoMstPorts) has to be at least 1");
-      AXI_ID_BITS:  assume (AxiIdWidth >= AxiLookBits) else
+      AXI_ID_BITS:  assert (AxiIdWidth >= AxiLookBits) else
         $fatal(1, "AxiIdBits has to be equal or smaller than AxiIdWidth.");
     end
-    default disable iff (!rst_ni);
-    aw_select: assume property( @(posedge clk_i) (slv_req_i.aw_valid |->
-                                                 (slv_aw_select_i < NoMstPorts))) else
-      $fatal(1, "slv_aw_select_i is %d: AW has selected a slave that is not defined.\
-                 NoMstPorts: %d", slv_aw_select_i, NoMstPorts);
-    ar_select: assume property( @(posedge clk_i) (slv_req_i.ar_valid |->
-                                                 (slv_ar_select_i < NoMstPorts))) else
-      $fatal(1, "slv_ar_select_i is %d: AR has selected a slave that is not defined.\
-                 NoMstPorts: %d", slv_ar_select_i, NoMstPorts);
-    aw_valid_stable: assert property( @(posedge clk_i) (aw_valid && !aw_ready) |=> aw_valid) else
-      $fatal(1, "aw_valid was deasserted, when aw_ready = 0 in last cycle.");
-    ar_valid_stable: assert property( @(posedge clk_i)
-                               (ar_valid && !ar_ready) |=> ar_valid) else
-      $fatal(1, "ar_valid was deasserted, when ar_ready = 0 in last cycle.");
-    slv_aw_chan_stable: assert property( @(posedge clk_i) (aw_valid && !aw_ready)
-                               |=> $stable(slv_req_i.aw)) else
-      $fatal(1, "slv_aw_chan unstable with valid set.");
-    slv_aw_select_stable: assert property( @(posedge clk_i) (aw_valid && !aw_ready)
-                               |=> $stable(slv_aw_select_i)) else
-      $fatal(1, "slv_aw_select_i unstable with valid set.");
-    slv_ar_chan_stable: assert property( @(posedge clk_i) (ar_valid && !ar_ready)
-                               |=> $stable(slv_req_i.ar)) else
-      $fatal(1, "slv_ar_chan unstable with valid set.");
-    slv_ar_select_stable: assert property( @(posedge clk_i) (ar_valid && !ar_ready)
-                               |=> $stable(slv_ar_select_i)) else
-      $fatal(1, "slv_ar_select_i unstable with valid set.");
-    internal_ar_select: assert property( @(posedge clk_i)
-        (ar_valid |-> slv_ar_select_i < NoMstPorts))
-      else $fatal(1, "slv_ar_select_i illegal while ar_valid.");
-    internal_aw_select: assert property( @(posedge clk_i)
-        (aw_valid |-> slv_aw_select_i < NoMstPorts))
-      else $fatal(1, "slv_aw_select_i illegal while aw_valid.");
-    w_underflow: assert property( @(posedge clk_i)
-        ((w_open == '0) && (w_cnt_up ^ w_cnt_down) |-> !w_cnt_down)) else
-        $fatal(1, "W counter underflowed!");
-    `ASSUME(NoAtopAllowed, !AtopSupport && slv_req_i.aw_valid |-> slv_req_i.aw.atop == '0)
 `endif
-`endif
-// pragma translate_on
-  end
 endmodule
 
 

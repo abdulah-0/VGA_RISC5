@@ -112,10 +112,8 @@ module rr_arb_tree #(
   `ifndef SYNTHESIS
   `ifndef COMMON_CELLS_ASSERTS_OFF
   `ifndef VERILATOR
-  `ifndef XSIM
   // Default SVA reset
-  default disable iff (!rst_ni || flush_i);
-  `endif
+  // default disable iff (!rst_ni || flush_i);
   `endif
   `endif
   `endif
