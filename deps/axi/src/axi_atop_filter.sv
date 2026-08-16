@@ -389,9 +389,9 @@ module axi_atop_filter_intf #(
   /// Asynchronous reset, active low
   input  logic    rst_ni,
   /// Slave interface port
-  AXI_BUS.Slave   slv,
+  AXI_BUS   slv,
   /// Master interface port
-  AXI_BUS.Master  mst
+  AXI_BUS  mst
 );
 
   typedef logic [AXI_ID_WIDTH-1:0]     id_t;

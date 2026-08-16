@@ -20,7 +20,7 @@ module lzc #(
   /// Dependent parameter. Do **not** change!
   ///
   /// Width of the output signal with the zero count.
-  parameter int unsigned CNT_WIDTH = cf_math_pkg::idx_width(WIDTH)
+  parameter int unsigned CNT_WIDTH = (WIDTH > 32'd1) ? $clog2(WIDTH) : 32'd1
 ) (
   /// Input vector to be counted.
   input  logic [WIDTH-1:0]     in_i,
