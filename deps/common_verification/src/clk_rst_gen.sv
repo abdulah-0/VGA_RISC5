@@ -8,9 +8,11 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
+`timescale 1ns/1ps
+
 // Clock and Reset Generator
 module clk_rst_gen #(
-  parameter time          ClkPeriod = 0ps, // minimum: 2ps
+  parameter time          ClkPeriod = 0, // minimum: 2
   parameter int unsigned  RstClkCycles = 0
 ) (
   output logic clk_o,
@@ -43,8 +45,8 @@ module clk_rst_gen #(
   // Validate parameters.
 `ifndef VERILATOR
   initial begin: validate_params
-    assert (ClkPeriod >= 2ps)
-      else $fatal(1, "The clock period must be at least 2ps!");
+    assert (ClkPeriod >= 2)
+      else $fatal(1, "The clock period must be at least 2!");
       // Reason: Gets divided by two, and some simulators do not support non-integer time steps, so
       // if the time unit is 1ps, this would fail.
     assert (RstClkCycles > 0)

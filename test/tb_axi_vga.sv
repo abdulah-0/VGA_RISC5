@@ -5,13 +5,15 @@
 // Nicole Narr <narrn@student.ethz.ch>
 // Christopher Reinwardt <creinwar@student.ethz.ch>
 
+`timescale 1ns/1ps
+
 module tb_axi_vga;
 
   `include "axi/typedef.svh"
   `include "register_interface/assign.svh"
   `include "register_interface/typedef.svh"
 
-  localparam int unsigned ClkPeriod = 5ns;
+  localparam int unsigned ClkPeriod = 5;
 
   // AXI parameters
   localparam int unsigned AXIAddrWidth  = 48;
@@ -137,7 +139,7 @@ module tb_axi_vga;
 
     $info("TEST: Render");
     // TODO: check produced wave forms automatically here
-    #150us;
+    #150000;
 
     $info("SUCCESS");
     $finish;
@@ -160,9 +162,9 @@ module tb_axi_vga;
     /// Warn on accesses to uninitialized bytes
     .WarnUninitialized  ( 1                 ),
     /// Application delay (measured after rising clock edge)
-    .ApplDelay          ( 1ns               ),
+    .ApplDelay          ( 1                 ),
     /// Acquisition delay (measured after rising clock edge)
-    .AcqDelay           ( 4ns               )
+    .AcqDelay           ( 4                 )
   ) i_axi_sim_mem (
     /// Rising-edge clock
     .clk_i              ( clk              ),
