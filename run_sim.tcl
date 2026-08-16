@@ -1,17 +1,21 @@
 # ==============================================================================
 # Automated Vivado Simulation Script for AXI VGA IP
 # Compatible with Vivado 2014.2 through 2024.x
-# Usage in Vivado Tcl Console: source run_sim.tcl
+# Usage in Vivado Tcl Console:
+#   cd C:/Users/snake/OneDrive/Desktop/axi_vga-main
+#   source run_sim.tcl
 # ==============================================================================
 
 set script_dir [file normalize [file dirname [info script]]]
 puts "==> Running AXI VGA Simulation from: $script_dir"
 
-# 1. Close any open project
+# 1. Close any existing open project
 catch {close_project}
 
-# 2. Create in-memory project
-create_project -in_memory -part xc7z020clg484-1
+# 2. Create disk-backed simulation project in build_sim directory
+set proj_dir "$script_dir/build_sim"
+file mkdir $proj_dir
+create_project -force vga_sim_proj $proj_dir -part xc7z020clg484-1
 
 # 3. Define include directories
 set inc_dirs [list \
@@ -20,7 +24,7 @@ set inc_dirs [list \
     "$script_dir/deps/register_interface/include" \
 ]
 
-# 4. Add Design, Dependency, and Verification Source Files in dependency order
+# 4. Add Design, Dependency, and Verification Source Files
 set src_files [list \
     "$script_dir/deps/common_cells/src/cf_math_pkg.sv" \
     "$script_dir/deps/axi/src/axi_pkg.sv" \
@@ -59,15 +63,17 @@ set src_files [list \
     "$script_dir/test/tb_axi_vga.sv" \
 ]
 
-# Add source files to fileset
+# 5. Add source files
 add_files -fileset sources_1 -norecurse $src_files
 set_property file_type SystemVerilog [get_files $src_files]
 
-# Set include paths
+# 6. Configure include search paths and top module
 set_property include_dirs $inc_dirs [get_filesets sources_1]
+set_property include_dirs $inc_dirs [get_filesets sim_1]
+set_property top tb_axi_vga [get_filesets sim_1]
 
-# Set top module
-set_property top tb_axi_vga [get_filesets sources_1]
+# 7. Disable multithreading for Vivado 2014.2 compiler stability
+set_property -name {xelab.more_options} -value {-mt off} -objects [get_filesets sim_1]
 
 puts "==> Elaboration and Simulation Starting..."
-launch_xsim -simset sources_1 -mode behavioral
+launch_xsim -simset sim_1 -mode behavioral
