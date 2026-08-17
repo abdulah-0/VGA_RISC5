@@ -1,9 +1,7 @@
-bender
-.bender/
-Bender.lock
-vsim/compile.tcl
-vsim/modelsim.ini
-vsim/transcript
-vsim/vsim.wlf
-vsim/work
-vsim/wlf*
+.Xil/
+build_sim/
+*.log
+*.jou
+*.pb
+*.wdb
+xsim.dir/
