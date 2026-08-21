@@ -255,6 +255,12 @@ module tb_axi_vga;
   );
 
 
+  logic       hsync;
+  logic       vsync;
+  logic [4:0] red;
+  logic [5:0] green;
+  logic [4:0] blue;
+
   axi_vga #(
     .RedWidth       ( 5                   ),
     .GreenWidth     ( 6                   ),
@@ -288,11 +294,11 @@ module tb_axi_vga;
     .axi_resp_i     ( vga_axi_resp  ),
 
     // VGA interface
-    .hsync_o        (               ),
-    .vsync_o        (               ),
-    .red_o          (               ),
-    .green_o        (               ),
-    .blue_o         (               )
+    .hsync_o        ( hsync         ),
+    .vsync_o        ( vsync         ),
+    .red_o          ( red           ),
+    .green_o        ( green         ),
+    .blue_o         ( blue          )
   );
 
 
