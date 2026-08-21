@@ -61,7 +61,7 @@ module axi_vga_reg_top #(
   assign reg_intf_rsp.ready = 1'b1;
 
   assign reg_rdata = reg_rdata_next ;
-  assign reg_error = (devmode_i & addrmiss) | wr_err;
+  assign reg_error = reg_intf_req.valid ? ((devmode_i & addrmiss) | wr_err) : 1'b0;
 
 
   // Define SW related signals

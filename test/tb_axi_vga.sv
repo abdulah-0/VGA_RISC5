@@ -66,11 +66,11 @@ module tb_axi_vga;
   `REG_BUS_ASSIGN_FROM_RSP(i_tb_regbus, vga_reg_rsp)
 
   task reg_reset_master;
-    i_tb_regbus.addr  <= '0;
-    i_tb_regbus.write <= '0;
-    i_tb_regbus.wdata <= '0;
-    i_tb_regbus.wstrb <= '0;
-    i_tb_regbus.valid <= '0;
+    i_tb_regbus.addr  = '0;
+    i_tb_regbus.write = '0;
+    i_tb_regbus.wdata = '0;
+    i_tb_regbus.wstrb = '0;
+    i_tb_regbus.valid = '0;
   endtask
 
   task reg_send_write (
@@ -100,7 +100,6 @@ module tb_axi_vga;
     
   // Initiate VGA driver - 32x16 testing mode
   initial begin
-    #(10 * ClkPeriod);
     reg_reset_master();
     #(10 * ClkPeriod);
 
