@@ -72,8 +72,6 @@ set_property include_dirs $inc_dirs [get_filesets sources_1]
 set_property include_dirs $inc_dirs [get_filesets sim_1]
 set_property top tb_axi_vga [get_filesets sim_1]
 
-# 7. Disable multithreading for Vivado 2014.2 compiler stability
-set_property -name {xelab.more_options} -value {-mt off} -objects [get_filesets sim_1]
 
 puts "==> Elaboration and Simulation Starting..."
 launch_xsim -simset sim_1 -mode behavioral
