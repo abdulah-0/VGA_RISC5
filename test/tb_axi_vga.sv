@@ -232,7 +232,7 @@ module tb_axi_vga;
   );
 
   initial begin
-      $readmemh("../test/count.mem", i_axi_sim_mem.mem);
+    $readmemh("count.mem", i_axi_sim_mem.mem);
   end
 
   axi_multicut #(

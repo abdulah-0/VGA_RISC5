@@ -78,6 +78,12 @@ module axi_sim_mem #(
   localparam int unsigned MemSize     = 32'h0008_0000; // 512 KB
   logic [7:0] mem [MemBaseAddr : MemBaseAddr + MemSize - 1];
 
+  initial begin
+    for (int unsigned a = MemBaseAddr; a < MemBaseAddr + MemSize; a++) begin
+      mem[a] = (a - MemBaseAddr) & 8'hff;
+    end
+  end
+
   localparam int MaxQueueDepth = 64;
   aw_t aw_queue [0:MaxQueueDepth-1];
   int  aw_q_head = 0, aw_q_tail = 0, aw_q_count = 0;

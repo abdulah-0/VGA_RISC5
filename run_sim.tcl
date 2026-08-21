@@ -72,6 +72,11 @@ set_property include_dirs $inc_dirs [get_filesets sources_1]
 set_property include_dirs $inc_dirs [get_filesets sim_1]
 set_property top tb_axi_vga [get_filesets sim_1]
 
+# 7. Add memory data file
+if {[file exists "$script_dir/test/count.mem"]} {
+    add_files -fileset sim_1 -norecurse "$script_dir/test/count.mem"
+}
+
 
 puts "==> Elaboration and Simulation Starting..."
 launch_xsim -simset sim_1 -mode behavioral
