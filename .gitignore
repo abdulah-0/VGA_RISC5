@@ -1,5 +1,6 @@
 .Xil/
 build_sim/
+build_fpga/
 *.log
 *.jou
 *.pb
