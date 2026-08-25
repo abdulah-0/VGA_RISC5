@@ -468,6 +468,7 @@ module axi_demux_simple #(
         $fatal(1, "AxiIdBits has to be equal or smaller than AxiIdWidth.");
     end
 `endif
+// pragma translate_on
 endmodule
 
 
