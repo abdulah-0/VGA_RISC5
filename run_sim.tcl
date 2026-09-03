@@ -1,21 +1,31 @@
 # ==============================================================================
 # Automated Vivado Simulation Script for AXI VGA IP
-# Compatible with Vivado 2014.2 through 2024.x
+# Compatible with Vivado 2020.1+ / 2020.2 / 2024.x
 # Usage in Vivado Tcl Console:
-#   cd C:/Users/snake/OneDrive/Desktop/axi_vga-main
+#   cd <repository_path>
 #   source run_sim.tcl
+# Or from Terminal / PowerShell:
+#   vivado -mode gui -source run_sim.tcl
+#   vivado -mode batch -source run_sim.tcl
 # ==============================================================================
 
-set script_dir [file normalize [file dirname [info script]]]
+# 0. Robust directory detection (works with source, batch mode, or pasted commands)
+if {[info exists script_dir] == 0 || $script_dir eq ""} {
+    if {[info script] ne ""} {
+        set script_dir [file normalize [file dirname [info script]]]
+    } else {
+        set script_dir [file normalize [pwd]]
+    }
+}
 puts "==> Running AXI VGA Simulation from: $script_dir"
 
 # 1. Close any existing open project
 catch {close_project}
 
-# 2. Create disk-backed simulation project in build_sim directory
+# 2. Create disk-backed simulation project in build_sim directory (Digilent Nexys Video XC7A200T)
 set proj_dir "$script_dir/build_sim"
 file mkdir $proj_dir
-create_project -force vga_sim_proj $proj_dir -part xc7z020clg484-1
+create_project -force vga_sim_proj $proj_dir -part xc7a200tsbg484-1
 
 # 3. Define include directories
 set inc_dirs [list \
@@ -77,6 +87,14 @@ if {[file exists "$script_dir/test/count.mem"]} {
     add_files -fileset sim_1 -norecurse "$script_dir/test/count.mem"
 }
 
+# 8. Add pre-configured waveform configuration if available
+if {[file exists "$script_dir/output/tb_axi_vga_behav.wcfg"]} {
+    add_files -fileset sim_1 -norecurse "$script_dir/output/tb_axi_vga_behav.wcfg"
+    set_property xsim.view "$script_dir/output/tb_axi_vga_behav.wcfg" [get_filesets sim_1]
+}
+
+# 9. Configure simulation properties to run until completion
+set_property -name {xsim.simulate.runtime} -value {all} -objects [get_filesets sim_1]
 
 puts "==> Elaboration and Simulation Starting..."
-launch_xsim -simset sim_1 -mode behavioral
+launch_simulation -simset sim_1 -mode behavioral

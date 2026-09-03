@@ -56,7 +56,7 @@ module id_queue #(
     end
 
     assign inp_gnt_o = (total_count < FifoDepth);
-    assign oup_gnt_o = 1'b1;
+    assign oup_gnt_o = (count[oup_id_i] > 0);
 
     // Output data from the sub-FIFO matching oup_id_i
     always_comb begin

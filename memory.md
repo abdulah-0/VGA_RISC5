@@ -59,7 +59,26 @@ This project delivers a fully verified, synthesizable, high-performance **AXI4 V
      * `SW0=1, SW1=1`: **Pure Solid Blue**.
   4. **Physical Pin Constraints (`fpga/nexys_video.xdc` & `fpga/arty_a7.xdc`)**: Mapped Pmod VGA headers JA & JB, clock pin `R4`, reset `G4`, switches, and diagnostic status LEDs (`LD0`–`LD3`).
   5. **Resolved Synthesis Pragma Bug**: Fixed an unmatched `pragma translate_off` in `deps/axi/src/axi_demux_simple.sv`.
-  6. **Automated Bitstream Build Script (`fpga/build_bitstream.tcl`)**: One-click batch synthesis, place & route, and bitstream generation.
+### Milestone 5: Vivado 2020.x Simulation Command Fix & Warning Elimination
+* **Problem**: 
+  1. `run_sim.tcl` failed in Vivado 2020 with `invalid command name "launch_xsim"`.
+  2. The simulation default runtime stopped at 1000 ns, aborting before the 150 µs rendering cycle finished.
+  3. Pre-configured waveforms (`output/tb_axi_vga_behav.wcfg`) were not automatically loaded in GUI mode, causing Vivado to dump thousands of internal multicut signals.
+  4. In `deps/common_cells/src/id_queue.sv`, `oup_gnt_o` was hardwired to `1'b1`, triggering hundreds of thousands of assertion warnings (`Warning: Invalid output at ID queue, read not granted!`) in `axi_burst_splitter.sv` every clock cycle, severely degrading simulation speed.
+* **Achieved Solutions**:
+  1. Replaced invalid `launch_xsim` with official Vivado command `launch_simulation -simset sim_1 -mode behavioral`.
+  2. Set `xsim.simulate.runtime` to `all` to ensure tests execute until `$finish`.
+  3. Integrated `output/tb_axi_vga_behav.wcfg` directly into the simulation fileset with `xsim.view`.
+  4. Corrected `oup_gnt_o = (count[oup_id_i] > 0)` in `id_queue.sv`, eliminating all false assertion warnings.
+### Milestone 6: Same-Project Bitstream Generation for Digilent Nexys Video
+* **Problem**: Generating a bitstream previously required running an external script (`fpga/build_bitstream.tcl`) that closed the active project and recreated a separate one (`build_fpga/nexys_video_vga_proj`). Attempting to generate a bitstream in the existing simulation project (`build_sim/vga_sim_proj`) caused DRC pin placement errors (`DRC NSTD-1`, `DRC UCIO-1`) because the part defaulted to `xc7z020`, constraints were omitted from `constrs_1`, and testbench modules were not excluded from synthesis.
+* **Achieved Solutions**:
+  1. Developed **`make_bitstream.tcl`**: Detects and operates directly within `[current_project]` without closing it.
+  2. Updates target device to **`xc7a200tsbg484-1`** on the project and runs (`synth_1`, `impl_1`).
+  3. Dynamically adds `fpga/vga_reg_init.sv`, `fpga/axi_synth_fb.sv`, and `fpga/nexys_video_top.sv` to `sources_1`, sets `nexys_video_top` as top, and disables simulation-only files (`tb_axi_vga.sv`, `axi_sim_mem.sv`, `clk_rst_gen.sv`).
+  4. Automatically registers and activates `fpga/nexys_video.xdc` in `constrs_1`.
+  5. Executes synthesis, place & route, and exports the generated bitstream directly to `nexys_video_vga.bit` in the repository root.
+  6. Provided `make_bitstream.bat` for one-click execution.
 
 ---
 
@@ -130,18 +149,26 @@ VGA_RISC5 / axi_vga-main
 ## 4. Operational Instructions
 
 ### A. How to Run Simulation in Vivado
+#### Option 1: Via Windows Launcher (One-Click)
+* Double-click **`run_sim.bat`** (or execute `.\run_sim.bat` in PowerShell) to launch Vivado GUI with the curated waveform window.
+* For automated headless/batch simulation:
+  ```cmd
+  .\run_sim.bat -batch
+  ```
+
+#### Option 2: Inside Vivado Tcl Console
 1. Open Vivado.
-2. In the Vivado Tcl Console, run:
+2. In the Vivado Tcl Console, navigate to the repository:
    ```tcl
-   cd C:/Users/snake/OneDrive/Desktop/axi_vga-main
+   cd C:/Users/snake/Desktop/VGA_RISC5-main
    source run_sim.tcl
    ```
-3. Type `run all` to execute to completion (`$info("SUCCESS")`).
+3. The simulation elaborates and launches automatically with pre-configured waveforms.
 
 ### B. How to Build Bitstream & Program Nexys Video FPGA
 1. In the Vivado Tcl Console, run:
    ```tcl
-   cd C:/Users/snake/OneDrive/Desktop/axi_vga-main
+   cd C:/Users/snake/Desktop/VGA_RISC5-main
    source fpga/build_bitstream.tcl
    ```
 2. Connect Nexys Video via micro-USB and turn power ON.
