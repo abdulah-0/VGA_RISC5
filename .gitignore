@@ -7,4 +7,5 @@ build_fpga/
 *.wdb
 *.dcp
 *.bit
+*.str
 xsim.dir/
