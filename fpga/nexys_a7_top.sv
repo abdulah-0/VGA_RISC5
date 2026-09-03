@@ -1,20 +1,21 @@
 // ==============================================================================
-// Top-Level FPGA Prototype Wrapper for Digilent Nexys Video (Artix-7 XC7A200T)
+// Top-Level FPGA Prototype Wrapper for Digilent Nexys A7 (Artix-7 XC7A100T / XC7A50T)
+// Compatible with onboard DB15 VGA Connector
 // ==============================================================================
 `timescale 1ns/1ps
 
-module nexys_video_top (
-  input  logic        clk_100mhz,   // 100 MHz On-Board Oscillator (Pin R4)
-  input  logic        btn_reset_n,  // Active-Low CPU Reset Pushbutton (Pin G4)
-  input  logic [1:0]  sw,           // Slide switches for color mode (Pins E22, F21)
-  output logic [3:0]  led,          // 4 User LEDs (Pins T14, T15, T16, U16)
+module nexys_a7_top (
+  input  logic        clk_100mhz,   // 100 MHz Master Oscillator Clock (Pin E3)
+  input  logic        btn_reset_n,  // Active-Low CPU Reset Pushbutton (Pin C12)
+  input  logic [1:0]  sw,           // Slide switches for color mode (Pins J15, L16)
+  output logic [3:0]  led,          // 4 User LEDs (Pins H17, K15, J13, N14)
 
-  // PMOD JA & JB VGA Interface
-  output logic [3:0]  vga_r,        // PMOD JA[3:0] (Pins AB18, AB20, AB21, AB22)
-  output logic [3:0]  vga_b,        // PMOD JA[7:4] (Pins AA18, AA20, AA21, Y21)
-  output logic [3:0]  vga_g,        // PMOD JB[3:0] (Pins W7, V7, V8, V9)
-  output logic        vga_hsync,    // PMOD JB[7]   (Pin W9)
-  output logic        vga_vsync     // PMOD JB[8]   (Pin Y9)
+  // Direct Onboard VGA Port (DB15 Connector)
+  output logic [3:0]  vga_r,        // Red Channel (Pins A3, B4, C5, A4)
+  output logic [3:0]  vga_g,        // Green Channel (Pins C6, A5, B6, A6)
+  output logic [3:0]  vga_b,        // Blue Channel (Pins B7, C7, D7, D8)
+  output logic        vga_hsync,    // Horizontal Sync (Pin B11)
+  output logic        vga_vsync     // Vertical Sync (Pin B12)
 );
 
   `include "axi/typedef.svh"
@@ -177,7 +178,7 @@ module nexys_video_top (
     .blue_o         ( blue_5bit         )
   );
 
-  // Map 5/6/5 RGB to 4/4/4 Nexys Video PMOD DAC (take MSBs)
+  // Map 5/6/5 RGB to 4/4/4 Nexys A7 Onboard VGA DAC (take MSBs)
   assign vga_r = red_5bit[4:1];
   assign vga_g = green_6bit[5:2];
   assign vga_b = blue_5bit[4:1];

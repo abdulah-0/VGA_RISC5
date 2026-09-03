@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Linux Launcher for Nexys Video Bitstream Generation in Vivado
+# Linux Launcher for Nexys A7 Bitstream Generation in Vivado
 # Usage:
 #   ./make_bitstream.sh
 # ==============================================================================

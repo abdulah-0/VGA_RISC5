@@ -1,15 +1,15 @@
 # ==============================================================================
 # Automated Bitstream Generation Script for Current Vivado Project
-# Targeted for Digilent Nexys Video (Artix-7 XC7A200T-1SBG484C)
+# Targeted for Digilent Nexys A7 (Artix-7 XC7A100T-1CSG324C / XC7A50T)
 # Compatible with Vivado 2020.1+ / 2020.2 / 2024.x
 #
 # Usage inside Vivado Tcl Console (while your project is open):
 #   source make_bitstream.tcl
 #
 # Optional board override before sourcing:
-#   set BOARD "nexys"       (Default: Digilent Nexys Video XC7A200T)
+#   set BOARD "nexys_a7"    (Default: Digilent Nexys A7-100T)
+#   set BOARD "nexys_a7_50t"(Digilent Nexys A7-50T)
 #   set BOARD "arty"        (Digilent Arty A7-35T)
-#   set BOARD "arty_100t"   (Digilent Arty A7-100T)
 #   source make_bitstream.tcl
 # ==============================================================================
 
@@ -41,28 +41,28 @@ if {[catch {current_project} current_proj] != 0 || $current_proj eq ""} {
 }
 
 # 3. Determine target board configuration
-# Default: "nexys" (Digilent Nexys Video XC7A200T). Can also be "arty" or "arty_100t"
+# Default: "nexys_a7" (Digilent Nexys A7-100T). Can also be "nexys_a7_50t" or "arty"
 if {[info exists BOARD] == 0 || $BOARD eq ""} {
-    set BOARD "nexys"
+    set BOARD "nexys_a7"
 }
 set BOARD [string tolower $BOARD]
 
-if {$BOARD eq "nexys" || $BOARD eq "nexys_video"} {
-    set target_part    "xc7a200tsbg484-1"
-    set top_module     "nexys_video_top"
-    set top_file       "$root_dir/fpga/nexys_video_top.sv"
-    set xdc_file       "$root_dir/fpga/nexys_video.xdc"
-    set bit_name       "nexys_video_vga.bit"
+if {$BOARD eq "nexys_a7" || $BOARD eq "nexys" || $BOARD eq "nexys_a7_100t"} {
+    set target_part    "xc7a100tcsg324-1"
+    set top_module     "nexys_a7_top"
+    set top_file       "$root_dir/fpga/nexys_a7_top.sv"
+    set xdc_file       "$root_dir/fpga/nexys_a7.xdc"
+    set bit_name       "nexys_a7_vga.bit"
     set other_xdc      "$root_dir/fpga/arty_a7.xdc"
     set other_top      "$root_dir/fpga/arty_a7_top.sv"
-} elseif {$BOARD eq "arty_100t"} {
-    set target_part    "xc7a100tcsg324-1"
-    set top_module     "arty_a7_top"
-    set top_file       "$root_dir/fpga/arty_a7_top.sv"
-    set xdc_file       "$root_dir/fpga/arty_a7.xdc"
-    set bit_name       "arty_100t_vga.bit"
-    set other_xdc      "$root_dir/fpga/nexys_video.xdc"
-    set other_top      "$root_dir/fpga/nexys_video_top.sv"
+} elseif {$BOARD eq "nexys_a7_50t"} {
+    set target_part    "xc7a50tcsg324-1"
+    set top_module     "nexys_a7_top"
+    set top_file       "$root_dir/fpga/nexys_a7_top.sv"
+    set xdc_file       "$root_dir/fpga/nexys_a7.xdc"
+    set bit_name       "nexys_a7_50t_vga.bit"
+    set other_xdc      "$root_dir/fpga/arty_a7.xdc"
+    set other_top      "$root_dir/fpga/arty_a7_top.sv"
 } else {
     # Arty A7-35T
     set target_part    "xc7a35tcsg324-1"
@@ -70,8 +70,8 @@ if {$BOARD eq "nexys" || $BOARD eq "nexys_video"} {
     set top_file       "$root_dir/fpga/arty_a7_top.sv"
     set xdc_file       "$root_dir/fpga/arty_a7.xdc"
     set bit_name       "arty_vga.bit"
-    set other_xdc      "$root_dir/fpga/nexys_video.xdc"
-    set other_top      "$root_dir/fpga/nexys_video_top.sv"
+    set other_xdc      "$root_dir/fpga/nexys_a7.xdc"
+    set other_top      "$root_dir/fpga/nexys_a7_top.sv"
 }
 
 puts "--------------------------------------------------"
@@ -193,9 +193,9 @@ if {[llength $bit_files] > 0} {
     set generated_bit [lindex $bit_files 0]
     file copy -force $generated_bit "$root_dir/$bit_name"
     puts "========================================================================="
-    puts " SUCCESS! Nexys Video Bitstream generated at:"
+    puts " SUCCESS! Nexys A7 Bitstream generated at:"
     puts "   $root_dir/$bit_name"
-    puts " You can now program your Nexys Video FPGA in Vivado Hardware Manager."
+    puts " You can now program your Nexys A7 FPGA in Vivado Hardware Manager."
     puts "========================================================================="
 } else {
     puts "==> WARNING: Bitstream was generated but could not locate *.bit file in $proj_runs_dir"

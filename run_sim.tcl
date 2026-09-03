@@ -22,10 +22,10 @@ puts "==> Running AXI VGA Simulation from: $script_dir"
 # 1. Close any existing open project
 catch {close_project}
 
-# 2. Create disk-backed simulation project in build_sim directory (Digilent Nexys Video XC7A200T)
+# 2. Create disk-backed simulation project in build_sim directory (Digilent Nexys A7 XC7A100T)
 set proj_dir "$script_dir/build_sim"
 file mkdir $proj_dir
-create_project -force vga_sim_proj $proj_dir -part xc7a200tsbg484-1
+create_project -force vga_sim_proj $proj_dir -part xc7a100tcsg324-1
 
 # 3. Define include directories
 set inc_dirs [list \

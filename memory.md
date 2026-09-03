@@ -70,15 +70,28 @@ This project delivers a fully verified, synthesizable, high-performance **AXI4 V
   2. Set `xsim.simulate.runtime` to `all` to ensure tests execute until `$finish`.
   3. Integrated `output/tb_axi_vga_behav.wcfg` directly into the simulation fileset with `xsim.view`.
   4. Corrected `oup_gnt_o = (count[oup_id_i] > 0)` in `id_queue.sv`, eliminating all false assertion warnings.
-### Milestone 6: Same-Project Bitstream Generation for Digilent Nexys Video
-* **Problem**: Generating a bitstream previously required running an external script (`fpga/build_bitstream.tcl`) that closed the active project and recreated a separate one (`build_fpga/nexys_video_vga_proj`). Attempting to generate a bitstream in the existing simulation project (`build_sim/vga_sim_proj`) caused DRC pin placement errors (`DRC NSTD-1`, `DRC UCIO-1`) because the part defaulted to `xc7z020`, constraints were omitted from `constrs_1`, and testbench modules were not excluded from synthesis.
+### Milestone 6: Same-Project Bitstream Generation
+* **Problem**: Generating a bitstream previously required running an external script (`fpga/build_bitstream.tcl`) that closed the active project and recreated a separate one. Attempting to generate a bitstream in the existing simulation project (`build_sim/vga_sim_proj`) caused DRC pin placement errors (`DRC NSTD-1`, `DRC UCIO-1`) because the part defaulted to `xc7z020`, constraints were omitted from `constrs_1`, and testbench modules were not excluded from synthesis.
 * **Achieved Solutions**:
   1. Developed **`make_bitstream.tcl`**: Detects and operates directly within `[current_project]` without closing it.
-  2. Updates target device to **`xc7a200tsbg484-1`** on the project and runs (`synth_1`, `impl_1`).
-  3. Dynamically adds `fpga/vga_reg_init.sv`, `fpga/axi_synth_fb.sv`, and `fpga/nexys_video_top.sv` to `sources_1`, sets `nexys_video_top` as top, and disables simulation-only files (`tb_axi_vga.sv`, `axi_sim_mem.sv`, `clk_rst_gen.sv`).
-  4. Automatically registers and activates `fpga/nexys_video.xdc` in `constrs_1`.
-  5. Executes synthesis, place & route, and exports the generated bitstream directly to `nexys_video_vga.bit` in the repository root.
-  6. Provided `make_bitstream.bat` for one-click execution.
+  2. Updates target device on the project and runs (`synth_1`, `impl_1`).
+  3. Dynamically adds FPGA wrapper and dependencies to `sources_1` and disables simulation-only files (`tb_axi_vga.sv`, `axi_sim_mem.sv`, `clk_rst_gen.sv`).
+  4. Automatically registers and activates constraints in `constrs_1`.
+  5. Executes synthesis, place & route, and exports the generated bitstream directly to the repository root.
+  6. Provided cross-platform launchers for Windows (`.bat`) and Linux (`.sh`).
+
+### Milestone 7: Migration to Digilent Nexys A7 FPGA
+* **Supervisor Requirement**: Shifted hardware prototyping platform to the **Digilent Nexys A7** (Artix-7 `xc7a100tcsg324-1` / `xc7a50tcsg324-1`, formerly Nexys 4 DDR) utilizing its **direct onboard DB15 VGA connector** (no Pmod expansion required).
+* **Achieved Solutions**:
+  1. **Top-Level Wrapper (`fpga/nexys_a7_top.sv`)**: Created dedicated top-level wrapper with 100 MHz oscillator input, active-low CPU reset, slide switches, 4 user status LEDs, and direct 4-4-4 RGB DAC outputs.
+  2. **Physical Pin Constraints (`fpga/nexys_a7.xdc`)**: Mapped to official Digilent Nexys A7 master pinouts:
+     * Clock: `E3` (100 MHz, LVCMOS33)
+     * CPU Reset Button: `C12` (Active-low, LVCMOS33)
+     * Switches: `SW0=J15`, `SW1=L16` (LVCMOS33)
+     * Status LEDs: `LD0=H17` (Lock), `LD1=K15` (Init), `LD2=J13` (VSync), `LD3=N14` (Heartbeat)
+     * Onboard VGA: `vga_r[3:0] = {A4, C5, B4, A3}`, `vga_g[3:0] = {A6, B6, A5, C6}`, `vga_b[3:0] = {D8, D7, C7, B7}`, `vga_hsync = B11`, `vga_vsync = B12` (all LVCMOS33).
+  3. **Removed Legacy Files**: Removed outdated `fpga/nexys_video_top.sv` and `fpga/nexys_video.xdc`.
+  4. **Updated Tooling**: Reconfigured `run_sim.tcl`, `make_bitstream.tcl`, `make_bitstream.bat`, `make_bitstream.sh`, and `fpga/build_bitstream.tcl` to default to `xc7a100tcsg324-1` and generate `nexys_a7_vga.bit`.
 
 ---
 
@@ -98,8 +111,8 @@ VGA_RISC5 / axi_vga-main
 │   └── axi_vga.sv                       # Top-level IP core integrating DMA, timing, and registers
 │
 ├── fpga/                                # FPGA Prototyping & Implementation
-│   ├── nexys_video_top.sv               # Top-level FPGA wrapper for Digilent Nexys Video (XC7A200T)
-│   ├── nexys_video.xdc                  # Physical constraints for Nexys Video (PMOD JA/JB, Clocks, LEDs)
+│   ├── nexys_a7_top.sv                  # Top-level FPGA wrapper for Digilent Nexys A7 (XC7A100T)
+│   ├── nexys_a7.xdc                     # Physical constraints for Nexys A7 (Onboard VGA, Clocks, LEDs)
 │   ├── arty_a7_top.sv                   # Top-level FPGA wrapper for Digilent Arty A7
 │   ├── arty_a7.xdc                      # Physical constraints for Arty A7
 │   ├── vga_reg_init.sv                  # Autonomous startup register initialization FSM
@@ -165,16 +178,24 @@ VGA_RISC5 / axi_vga-main
    ```
 3. The simulation elaborates and launches automatically with pre-configured waveforms.
 
-### B. How to Build Bitstream & Program Nexys Video FPGA
-1. In the Vivado Tcl Console, run:
-   ```tcl
-   cd C:/Users/snake/Desktop/VGA_RISC5-main
-   source fpga/build_bitstream.tcl
-   ```
-2. Connect Nexys Video via micro-USB and turn power ON.
-3. Plug **Pmod VGA** into headers **JA** & **JB**, connected to a monitor.
-4. In Vivado Hardware Manager, click **Auto Connect** $\rightarrow$ **Program Device** $\rightarrow$ select `nexys_video_vga.bit`.
-5. Use switches **`SW0`** and **`SW1`** to cycle between 8-Color Bars and Pure Red/Green/Blue screens.
+### B. How to Build Bitstream & Program Nexys A7 FPGA
+#### Option 1: Inside the Same Vivado Project (Recommended)
+While your Vivado project is open:
+```tcl
+source make_bitstream.tcl
+```
+Or double-click **`make_bitstream.bat`**.
+
+#### Option 2: Standalone Script
+```tcl
+source fpga/build_bitstream.tcl
+```
+
+#### Programming the Board
+1. Connect Digilent Nexys A7 via micro-USB (PROG/UART port) and turn power ON.
+2. Connect a VGA monitor directly to the onboard **DB15 VGA connector** (no Pmod required).
+3. In Vivado Hardware Manager, click **Auto Connect** $\rightarrow$ **Program Device** $\rightarrow$ select `nexys_a7_vga.bit`.
+4. Use slide switches **`SW0`** and **`SW1`** to cycle between 8-Color Bars and Pure Red/Green/Blue screens.
 
 ---
 

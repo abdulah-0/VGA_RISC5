@@ -1,6 +1,6 @@
 @echo off
 REM ==============================================================================
-REM Universal Bitstream Generator for Digilent Nexys Video (Artix-7 XC7A200T)
+REM Universal Bitstream Generator for Digilent Nexys A7 (Artix-7 XC7A100T / XC7A50T)
 REM Automatically detects any installed Vivado version (2020.x, 2021.x, 2022.x, 2023.x, etc.)
 REM Usage:
 REM   make_bitstream.bat
@@ -36,7 +36,7 @@ if "%VIVADO_BIN%"=="" (
 )
 
 echo [INFO] Found Vivado: %VIVADO_BIN%
-echo [INFO] Generating Nexys Video Bitstream within existing project...
+echo [INFO] Generating Nexys A7 Bitstream within existing project...
 cd /d "%SCRIPT_DIR%"
 call "%VIVADO_BIN%" -mode batch -source "%SCRIPT_DIR%\make_bitstream.tcl"
 
